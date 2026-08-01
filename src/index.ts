@@ -237,6 +237,13 @@ export type MissedOptions = LastDueOptions & {
  * This is the question a watchdog actually asks. Returns false when the job
  * was not due inside the lookback window, because a job that was never due
  * cannot have missed anything.
+ *
+ * Throws on an expression it cannot parse, and that is deliberate. Returning
+ * false would be the friendlier-looking choice and the dangerous one: a typo
+ * in a cron string would read as "nothing missed", the watchdog would stay
+ * quiet forever, and the silence would be indistinguishable from health. A
+ * monitor that cannot tell has to say so. Use parseCron when you want to
+ * check an expression without an exception.
  */
 export function hasMissedRun(
   expression: string,
@@ -245,6 +252,13 @@ export function hasMissedRun(
   timeZone: string,
   options: MissedOptions = {},
 ): boolean {
+  if (!parseCron(expression)) {
+    throw new Error(
+      `cron-last-due: cannot parse "${expression}". A watchdog must not treat ` +
+        `an unreadable schedule as healthy. See the README for the supported subset.`,
+    );
+  }
+
   const due = lastDueBefore(expression, now, timeZone, options);
   if (!due) return false;
 

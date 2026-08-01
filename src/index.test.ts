@@ -156,3 +156,19 @@ describe("hasMissedRun", () => {
     expect(hasMissedRun("0 * * * *", letzter, jetzt, UTC, { toleranceMs: 20 * 60_000 })).toBe(false);
   });
 });
+
+describe("unlesbarer Ausdruck", () => {
+  it("wirft, statt Gesundheit zu melden", () => {
+    // Der gefaehrliche Fall: Ein Tippfehler im Ausdruck darf nicht wie
+    // "nichts verpasst" aussehen. Vorher gab diese Zeile false zurueck und
+    // der Watchdog blieb dauerhaft stumm.
+    expect(() =>
+      hasMissedRun("*/5 * * *", null, new Date("2026-08-01T10:00:00Z"), "UTC"),
+    ).toThrow(/cannot parse/);
+  });
+
+  it("laesst parseCron weiterhin still pruefen", () => {
+    expect(parseCron("*/5 * * *")).toBeNull();
+    expect(parseCron("*/5 * * * *")).not.toBeNull();
+  });
+});

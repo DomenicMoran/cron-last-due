@@ -4,7 +4,8 @@
 missed-run detection, for watchdogs rather than schedulers. No dependencies.
 
 ```bash
-npm install cron-last-due
+# Not on npm yet. Install straight from the repository:
+npm install github:DomenicMoran/cron-last-due
 ```
 
 ## The problem it solves
@@ -104,6 +105,12 @@ every 10".
 
 An expression it does not understand returns `null` rather than matching
 nothing, so a monitor can tell "not due" apart from "cannot tell".
+
+`hasMissedRun` goes one step further and throws on such an expression. It is
+the one function whose answer a watchdog acts on, and there `false` would mean
+"nothing missed". A typo in a schedule would then silence the watchdog
+permanently, and that silence would look exactly like health. Use `parseCron`
+when you want to validate an expression without an exception.
 
 ## Cost
 
