@@ -4,8 +4,7 @@
 missed-run detection, for watchdogs rather than schedulers. No dependencies.
 
 ```bash
-# Not on npm yet. Install straight from the repository:
-npm install github:DomenicMoran/cron-last-due
+npm install cron-last-due
 ```
 
 ## The problem it solves
