@@ -2,21 +2,51 @@
   "name": "cron-last-due",
   "version": "1.0.0",
   "description": "When was this cron job last due? Timezone-aware previous-fire-time and missed-run detection for watchdogs. No dependencies.",
-  "keywords": ["cron", "schedule", "watchdog", "monitoring", "timezone", "previous-fire-time"],
+  "keywords": [
+    "cron",
+    "schedule",
+    "watchdog",
+    "monitoring",
+    "timezone",
+    "previous-fire-time"
+  ],
   "license": "MIT",
   "author": "Domenic Moran",
-  "repository": { "type": "git", "url": "git+https://github.com/DomenicMoran/cron-last-due.git" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DomenicMoran/cron-last-due.git"
+  },
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
-  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "sideEffects": false,
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build && npm test"
   },
-  "devDependencies": { "typescript": "^5.7.3", "vitest": "^3.0.5" },
-  "engines": { "node": ">=20" }
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.5"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "homepage": "https://github.com/DomenicMoran/cron-last-due#readme",
+  "bugs": {
+    "url": "https://github.com/DomenicMoran/cron-last-due/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }
