@@ -190,7 +190,7 @@ export type LastDueOptions = {
  *
  * Returns null when the expression is invalid, or when it was not due at any
  * point inside the lookback window. A null therefore means "no answer", not
- * "never due" — widen `lookbackMs` for sparse schedules.
+ * "never due": widen `lookbackMs` for sparse schedules.
  *
  * @example
  * // Did a Monday-to-Friday 07:00 Berlin job miss its slot?
