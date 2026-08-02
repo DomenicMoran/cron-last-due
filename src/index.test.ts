@@ -5,7 +5,7 @@ const BERLIN = "Europe/Berlin";
 const UTC = "UTC";
 
 describe("parseCron", () => {
-  it("liest die fünf Standardfelder", () => {
+  it("reads the five standard fields", () => {
     const c = parseCron("30 7 * * 1-5");
     expect(c).not.toBeNull();
     expect([...c!.minute]).toEqual([30]);
@@ -15,27 +15,27 @@ describe("parseCron", () => {
     expect(c!.dayOfWeekRestricted).toBe(true);
   });
 
-  it("verwirft das führende Sekundenfeld der sechsstelligen Form", () => {
-    const fuenf = parseCron("0 15 * * *");
-    const sechs = parseCron("0 0 15 * * *");
-    expect([...sechs!.hour]).toEqual([...fuenf!.hour]);
-    expect([...sechs!.minute]).toEqual([...fuenf!.minute]);
+  it("drops the leading seconds field of the six-field form", () => {
+    const five = parseCron("0 15 * * *");
+    const six = parseCron("0 0 15 * * *");
+    expect([...six!.hour]).toEqual([...five!.hour]);
+    expect([...six!.minute]).toEqual([...five!.minute]);
   });
 
-  it("behandelt 7 als Sonntag", () => {
+  it("treats 7 as Sunday", () => {
     expect([...parseCron("0 0 * * 7")!.dayOfWeek]).toEqual([0]);
   });
 
-  it("löst Schrittwerte auf", () => {
+  it("expands step values", () => {
     expect([...parseCron("*/15 * * * *")!.minute]).toEqual([0, 15, 30, 45]);
-    // "5/10" heißt: ab 5, dann alle 10.
+    // "5/10" means: from 5, then every 10.
     expect([...parseCron("5/10 * * * *")!.minute]).toEqual([5, 15, 25, 35, 45, 55]);
   });
 
-  it("gibt null zurück statt still nichts zu treffen", () => {
+  it("returns null rather than silently matching nothing", () => {
     expect(parseCron("")).toBeNull();
     expect(parseCron("* * *")).toBeNull();
-    expect(parseCron("60 * * * *")).toBeNull(); // Minute 60 gibt es nicht
+    expect(parseCron("60 * * * *")).toBeNull(); // there is no minute 60
     expect(parseCron("* 24 * * *")).toBeNull();
     expect(parseCron("abc * * * *")).toBeNull();
     expect(parseCron("*/0 * * * *")).toBeNull();
@@ -44,130 +44,129 @@ describe("parseCron", () => {
 });
 
 describe("cronMatches", () => {
-  it("wertet den Ausdruck in der angegebenen Zone aus", () => {
+  it("evaluates the expression in the given zone", () => {
     const c = parseCron("0 7 * * *")!;
-    // 05:00 UTC ist im Sommer 07:00 in Berlin.
-    const sommer = new Date("2026-07-01T05:00:00Z");
-    expect(cronMatches(c, sommer, BERLIN)).toBe(true);
-    expect(cronMatches(c, sommer, UTC)).toBe(false);
+    // 05:00 UTC is 07:00 in Berlin during summer time.
+    const summer = new Date("2026-07-01T05:00:00Z");
+    expect(cronMatches(c, summer, BERLIN)).toBe(true);
+    expect(cronMatches(c, summer, UTC)).toBe(false);
   });
 
-  it("folgt der Zeitumstellung", () => {
+  it("follows the daylight saving change", () => {
     const c = parseCron("0 7 * * *")!;
-    // Im Winter ist 07:00 Berlin gleich 06:00 UTC.
+    // In winter, 07:00 Berlin is 06:00 UTC.
     const winter = new Date("2026-01-15T06:00:00Z");
     expect(cronMatches(c, winter, BERLIN)).toBe(true);
     expect(cronMatches(c, new Date("2026-01-15T05:00:00Z"), BERLIN)).toBe(false);
   });
 
-  it("verknüpft Monatstag und Wochentag mit ODER, wenn beide gesetzt sind", () => {
-    // Der 1. jedes Monats UND jeder Montag, nicht deren Schnittmenge.
+  it("combines day-of-month and day-of-week with OR when both are set", () => {
+    // The first of every month AND every Monday, not their intersection.
     const c = parseCron("0 0 1 * 1")!;
-    const ersterMittwoch = new Date("2026-07-01T00:00:00Z"); // 1. Juli 2026, Mittwoch
-    const einMontag = new Date("2026-07-06T00:00:00Z");
-    expect(cronMatches(c, ersterMittwoch, UTC)).toBe(true);
-    expect(cronMatches(c, einMontag, UTC)).toBe(true);
+    const firstOfMonth = new Date("2026-07-01T00:00:00Z"); // 1 July 2026, a Wednesday
+    const aMonday = new Date("2026-07-06T00:00:00Z");
+    expect(cronMatches(c, firstOfMonth, UTC)).toBe(true);
+    expect(cronMatches(c, aMonday, UTC)).toBe(true);
     expect(cronMatches(c, new Date("2026-07-07T00:00:00Z"), UTC)).toBe(false);
   });
 
-  it("verknüpft mit UND, wenn nur eines der beiden Felder gesetzt ist", () => {
-    const nurTag = parseCron("0 0 15 * *")!;
-    expect(cronMatches(nurTag, new Date("2026-07-15T00:00:00Z"), UTC)).toBe(true);
-    expect(cronMatches(nurTag, new Date("2026-07-16T00:00:00Z"), UTC)).toBe(false);
+  it("combines with AND when only one of the two fields is set", () => {
+    const dayOnly = parseCron("0 0 15 * *")!;
+    expect(cronMatches(dayOnly, new Date("2026-07-15T00:00:00Z"), UTC)).toBe(true);
+    expect(cronMatches(dayOnly, new Date("2026-07-16T00:00:00Z"), UTC)).toBe(false);
   });
 });
 
 describe("lastDueBefore", () => {
-  it("findet den letzten fälligen Zeitpunkt", () => {
-    const jetzt = new Date("2026-07-15T10:17:00Z"); // Mittwoch
-    const due = lastDueBefore("0 * * * *", jetzt, UTC);
+  it("finds the most recent due time", () => {
+    const now = new Date("2026-07-15T10:17:00Z"); // Wednesday
+    const due = lastDueBefore("0 * * * *", now, UTC);
     expect(due?.toISOString()).toBe("2026-07-15T10:00:00.000Z");
   });
 
-  it("liegt echt vor dem Bezugszeitpunkt", () => {
-    // Genau zur vollen Stunde darf nicht die laufende Ausführung gemeldet
-    // werden, sonst sieht ein gerade startender Lauf überfällig aus.
-    const jetzt = new Date("2026-07-15T10:00:00Z");
-    expect(lastDueBefore("0 * * * *", jetzt, UTC)?.toISOString()).toBe(
+  it("stays strictly before the reference instant", () => {
+    // Exactly on the hour, the currently starting run must not be reported as
+    // its own due time, or it looks overdue.
+    const now = new Date("2026-07-15T10:00:00Z");
+    expect(lastDueBefore("0 * * * *", now, UTC)?.toISOString()).toBe(
       "2026-07-15T09:00:00.000Z",
     );
   });
 
-  it("überspringt das Wochenende bei einem Mo-Fr-Ausdruck", () => {
-    // Sonntag, 12. Juli 2026, 09:00 UTC. Letzte Fälligkeit: Freitag 07:00
-    // Berlin, das sind 05:00 UTC im Sommer.
-    const sonntag = new Date("2026-07-12T09:00:00Z");
-    const due = lastDueBefore("0 7 * * 1-5", sonntag, BERLIN);
+  it("skips the weekend for a Monday-to-Friday expression", () => {
+    // Sunday, 12 July 2026, 09:00 UTC. Last due time: Friday 07:00 Berlin,
+    // which is 05:00 UTC in summer.
+    const sunday = new Date("2026-07-12T09:00:00Z");
+    const due = lastDueBefore("0 7 * * 1-5", sunday, BERLIN);
     expect(due?.toISOString()).toBe("2026-07-10T05:00:00.000Z");
   });
 
-  it("gibt null zurück, wenn im Fenster nichts fällig war", () => {
-    // Jährlich am 1. Januar, Fenster nur sieben Tage.
+  it("returns null when nothing was due inside the window", () => {
+    // Yearly on 1 January, window only seven days.
     expect(lastDueBefore("0 0 1 1 *", new Date("2026-07-15T00:00:00Z"), UTC)).toBeNull();
   });
 
-  it("findet dieselbe Fälligkeit mit größerem Fenster", () => {
+  it("finds the same due time with a wider window", () => {
     const due = lastDueBefore("0 0 1 1 *", new Date("2026-07-15T00:00:00Z"), UTC, {
       lookbackMs: 400 * 24 * 3600_000,
     });
     expect(due?.toISOString()).toBe("2026-01-01T00:00:00.000Z");
   });
 
-  it("gibt null zurück bei ungültigem Ausdruck", () => {
-    expect(lastDueBefore("kaputt", new Date(), UTC)).toBeNull();
+  it("returns null for an invalid expression", () => {
+    expect(lastDueBefore("broken", new Date(), UTC)).toBeNull();
   });
 });
 
 describe("hasMissedRun", () => {
-  const jetzt = new Date("2026-07-15T10:30:00Z"); // Mittwoch
+  const now = new Date("2026-07-15T10:30:00Z"); // Wednesday
 
-  it("meldet einen verpassten Lauf", () => {
-    const letzter = new Date("2026-07-15T08:00:00Z");
-    expect(hasMissedRun("0 * * * *", letzter, jetzt, UTC)).toBe(true);
+  it("reports a missed run", () => {
+    const lastRun = new Date("2026-07-15T08:00:00Z");
+    expect(hasMissedRun("0 * * * *", lastRun, now, UTC)).toBe(true);
   });
 
-  it("meldet nichts, solange der Lauf innerhalb der Toleranz liegt", () => {
-    // Fällig war 10:00, gelaufen 09:58. Zwei Minuten früh liegt im Rahmen.
-    const letzter = new Date("2026-07-15T09:58:00Z");
-    expect(hasMissedRun("0 * * * *", letzter, jetzt, UTC)).toBe(false);
+  it("reports nothing while the run is inside the tolerance", () => {
+    // Due at 10:00, ran at 09:58. Two minutes early is within the margin.
+    const lastRun = new Date("2026-07-15T09:58:00Z");
+    expect(hasMissedRun("0 * * * *", lastRun, now, UTC)).toBe(false);
   });
 
-  it("meldet am Wochenende nichts für einen Mo-Fr-Ausdruck", () => {
-    // Das ist der Fehlalarm, für den diese Bibliothek existiert: Sonntag,
-    // letzter Lauf am Freitag, und eine pauschale 36-Stunden-Regel hätte hier
-    // Alarm geschlagen.
-    const sonntag = new Date("2026-07-12T09:00:00Z");
-    const freitag = new Date("2026-07-10T05:00:00Z");
-    expect(hasMissedRun("0 7 * * 1-5", freitag, sonntag, BERLIN)).toBe(false);
-    expect(sonntag.getTime() - freitag.getTime()).toBeGreaterThan(36 * 3600_000);
+  it("reports nothing at the weekend for a Monday-to-Friday expression", () => {
+    // This is the false alarm this library exists for: Sunday, last run on
+    // Friday, and a blanket 36-hour rule would have fired here.
+    const sunday = new Date("2026-07-12T09:00:00Z");
+    const friday = new Date("2026-07-10T05:00:00Z");
+    expect(hasMissedRun("0 7 * * 1-5", friday, sunday, BERLIN)).toBe(false);
+    expect(sunday.getTime() - friday.getTime()).toBeGreaterThan(36 * 3600_000);
   });
 
-  it("wertet einen fehlenden Lauf als verpasst, sobald etwas fällig war", () => {
-    expect(hasMissedRun("0 * * * *", null, jetzt, UTC)).toBe(true);
+  it("counts a missing run as missed as soon as something was due", () => {
+    expect(hasMissedRun("0 * * * *", null, now, UTC)).toBe(true);
   });
 
-  it("meldet nichts, wenn im Fenster nichts fällig war", () => {
-    expect(hasMissedRun("0 0 1 1 *", null, jetzt, UTC)).toBe(false);
+  it("reports nothing when nothing was due inside the window", () => {
+    expect(hasMissedRun("0 0 1 1 *", null, now, UTC)).toBe(false);
   });
 
-  it("nimmt eine eigene Toleranz an", () => {
-    const letzter = new Date("2026-07-15T09:50:00Z");
-    expect(hasMissedRun("0 * * * *", letzter, jetzt, UTC, { toleranceMs: 60_000 })).toBe(true);
-    expect(hasMissedRun("0 * * * *", letzter, jetzt, UTC, { toleranceMs: 20 * 60_000 })).toBe(false);
+  it("accepts a tolerance of its own", () => {
+    const lastRun = new Date("2026-07-15T09:50:00Z");
+    expect(hasMissedRun("0 * * * *", lastRun, now, UTC, { toleranceMs: 60_000 })).toBe(true);
+    expect(hasMissedRun("0 * * * *", lastRun, now, UTC, { toleranceMs: 20 * 60_000 })).toBe(false);
   });
 });
 
-describe("unlesbarer Ausdruck", () => {
-  it("wirft, statt Gesundheit zu melden", () => {
-    // Der gefaehrliche Fall: Ein Tippfehler im Ausdruck darf nicht wie
-    // "nichts verpasst" aussehen. Vorher gab diese Zeile false zurueck und
-    // der Watchdog blieb dauerhaft stumm.
+describe("unreadable expression", () => {
+  it("throws instead of reporting health", () => {
+    // The dangerous case: a typo in the expression must not look like
+    // "nothing missed". This line used to return false and the watchdog
+    // stayed quiet permanently.
     expect(() =>
       hasMissedRun("*/5 * * *", null, new Date("2026-08-01T10:00:00Z"), "UTC"),
     ).toThrow(/cannot parse/);
   });
 
-  it("laesst parseCron weiterhin still pruefen", () => {
+  it("leaves parseCron checking silently", () => {
     expect(parseCron("*/5 * * *")).toBeNull();
     expect(parseCron("*/5 * * * *")).not.toBeNull();
   });

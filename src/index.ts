@@ -179,7 +179,7 @@ export type LastDueOptions = {
    * How far back to look, in milliseconds. Default seven days.
    *
    * The search walks minute by minute, so the window is also the cost: seven
-   * days is 10.080 iterations of a cheap comparison. Raise it for monthly jobs,
+   * days is 10,080 iterations of a cheap comparison. Raise it for monthly jobs,
    * and be aware that a yearly cron means half a million iterations.
    */
   lookbackMs?: number;

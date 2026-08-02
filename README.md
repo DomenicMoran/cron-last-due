@@ -3,6 +3,10 @@
 **When was this cron job last due?** Timezone-aware previous-fire-time and
 missed-run detection, for watchdogs rather than schedulers. No dependencies.
 
+[![CI](https://github.com/DomenicMoran/cron-last-due/actions/workflows/ci.yml/badge.svg)](https://github.com/DomenicMoran/cron-last-due/actions/workflows/ci.yml)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
+![Dependencies](https://img.shields.io/badge/dependencies-0-success)
+
 ```bash
 npm install cron-last-due
 ```
@@ -113,7 +117,7 @@ when you want to validate an expression without an exception.
 
 ## Cost
 
-The search walks backwards minute by minute. Seven days is 10.080 iterations of
+The search walks backwards minute by minute. Seven days is 10,080 iterations of
 a cheap comparison. A yearly schedule with a matching lookback window is around
 half a million, which is still milliseconds, but worth knowing before you set
 `lookbackMs` to a year in a loop over a thousand jobs.
