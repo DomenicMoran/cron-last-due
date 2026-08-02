@@ -1,9 +1,9 @@
 {
   "extends": "./tsconfig.json",
-  // rootDir muss seit TypeScript 7 ausdruecklich dastehen (TS5011). Vorher
-  // hat der Uebersetzer ihn aus dem gemeinsamen Ordner der Eingabedateien
-  // erraten; das ist entfallen, weil das Ergebnis davon abhing, welche
-  // Dateien gerade uebersetzt wurden. Hier war es immer ./src.
+  // rootDir has to be stated explicitly since TypeScript 7 (TS5011). The
+  // compiler used to infer it from the common directory of the input files;
+  // that was dropped because the result depended on which files happened to be
+  // compiled. Here it was always ./src.
   "compilerOptions": { "rootDir": "./src" },
   "exclude": ["src/**/*.test.ts"]
 }
