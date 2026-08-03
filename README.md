@@ -4,6 +4,7 @@
 missed-run detection, for watchdogs rather than schedulers. No dependencies.
 
 [![CI](https://github.com/DomenicMoran/cron-last-due/actions/workflows/ci.yml/badge.svg)](https://github.com/DomenicMoran/cron-last-due/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/cron-last-due)](https://www.npmjs.com/package/cron-last-due)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-success)
 
